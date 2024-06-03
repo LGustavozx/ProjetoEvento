@@ -33,6 +33,7 @@ namespace ProEvento.API
                 context => context.UseSqlite("Data Source=ProEvento.db")
             );
             services.AddControllers();
+            services.AddCors();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ProEvento.API", Version = "v1" });
@@ -54,6 +55,8 @@ namespace ProEvento.API
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseCors(cors => cors.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
             app.UseEndpoints(endpoints =>
             {
