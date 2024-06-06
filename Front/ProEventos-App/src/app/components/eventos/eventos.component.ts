@@ -1,8 +1,8 @@
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { Evento } from '../models/Evento';
-import { EventoService } from './../services/evento.service';
+import { Evento } from '../../models/Evento';
+import { EventoService } from '../../services/evento.service';
 
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, Output, TemplateRef } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
 
@@ -12,6 +12,8 @@ import { NgxSpinnerService } from 'ngx-spinner';
   styleUrls: ['./eventos.component.scss'],
 })
 export class EventosComponent implements OnInit {
+  
+
   modalRef: BsModalRef;
   public eventos: Evento[] = [];
   public eventosFiltrados: Evento[] = [];
