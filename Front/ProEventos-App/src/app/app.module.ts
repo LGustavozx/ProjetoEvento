@@ -5,7 +5,7 @@ import { ContatosComponent } from './components/contatos/contatos.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { CollapseModule } from 'ngx-bootstrap/collapse';
@@ -56,6 +56,7 @@ import { RegistrarComponent } from './components/user/registrar/registrar.compon
     BrowserAnimationsModule,
     CollapseModule.forRoot(),
     FormsModule,
+    ReactiveFormsModule,
     ModalModule.forRoot(),
     BsDropdownModule.forRoot(),
     TooltipModule.forRoot(),

@@ -49,5 +49,13 @@
     "ts-node": "~8.3.0",
     "tslint": "~6.1.0",
     "typescript": "~4.1.5"
+  },
+  "paths" : {
+    "@app/*": ["src/app/*"],
+    "@environments/*": ["src/environments/*"]
+  },
+  "angularCompilerOptions" : {
+    "strictTemplates": true,
+    "strictInjectionParameter": true
   }
 }
