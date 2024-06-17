@@ -9,9 +9,10 @@ import { EventoService } from 'src/app/services/evento.service';
 @Component({
   selector: 'app-eventos-lista',
   templateUrl: './eventos-lista.component.html',
-  styleUrls: ['./eventos-lista.component.scss']
+  styleUrls: ['./eventos-lista.component.scss'],
 })
 export class EventosListaComponent implements OnInit {
+  eventoId: number;
   modalRef: BsModalRef;
   eventos: Evento[] = [];
   eventosFiltrados: Evento[] = [];
@@ -72,13 +73,32 @@ export class EventosListaComponent implements OnInit {
     });
   }
 
-  openModal(template: TemplateRef<any>): void {
+  openModal(event: any, template: TemplateRef<any>, eventoId: number): void {
+    this.eventoId = eventoId;
+    event.stopPropagation();
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
 
   confirm(): void {
     this.modalRef.hide();
-    this.toastr.success('Deletado com sucesso', 'Deletado !');
+    this.spinner.show();
+
+    this.eventoService
+      .deleteEvento(this.eventoId)
+      .subscribe(
+        (result: string) => {
+          this.toastr.success('Deletado com sucesso', 'Deletado !');
+          this.getEventos();
+        },
+        (error: any) => {
+          console.error(error);
+          this.toastr.error(
+            `Erro ao tentar deletar o evento ${this.eventoId}`,
+            'Erro'
+          );
+        },
+      )
+      .add(() => this.spinner.hide());
   }
 
   decline(): void {

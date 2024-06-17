@@ -12,6 +12,11 @@ import { CollapseModule } from 'ngx-bootstrap/collapse';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ModalModule } from 'ngx-bootstrap/modal';
+import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
+import { defineLocale } from 'ngx-bootstrap/chronos';
+import { ptBrLocale } from 'ngx-bootstrap/locale';
+
+
 
 import { ToastrModule } from 'ngx-toastr';
 
@@ -32,6 +37,8 @@ import { UserComponent } from './components/user/user.component';
 import { LoginComponent } from './components/user/login/login.component';
 import { RegistrarComponent } from './components/user/registrar/registrar.component';
 
+defineLocale('pt-br', ptBrLocale);
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -47,7 +54,7 @@ import { RegistrarComponent } from './components/user/registrar/registrar.compon
     EventosListaComponent,
     UserComponent,
     LoginComponent,
-    RegistrarComponent
+    RegistrarComponent,
   ],
   imports: [
     BrowserModule,
@@ -64,17 +71,13 @@ import { RegistrarComponent } from './components/user/registrar/registrar.compon
       timeOut: 4000,
       positionClass: 'toast-bottom-right',
       preventDuplicates: true,
-      progressBar:true,
+      progressBar: true,
     }),
     NgxSpinnerModule,
     NgxCurrencyModule,
-
-
-
+    BsDatepickerModule.forRoot(),
   ],
-  providers: [
-    EventoService
-  ],
-  bootstrap: [AppComponent]
+  providers: [EventoService],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}
