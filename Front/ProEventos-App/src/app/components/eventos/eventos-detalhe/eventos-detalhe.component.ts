@@ -1,7 +1,10 @@
+import { LoteService } from './../../../services/lote.service';
 import { Evento } from './../../../models/Evento';
 import { EventoService } from './../../../services/evento.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import {
+  AbstractControl,
+  FormArray,
   FormBuilder,
   FormControl,
   FormGroup,
@@ -12,24 +15,35 @@ import { BsLocaleService } from 'ngx-bootstrap/datepicker';
 import { NgxSpinnerService } from 'ngx-spinner';
 
 import { ToastrService } from 'ngx-toastr';
+import { Lote } from 'src/app/models/Lote';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-eventos-detalhe',
   templateUrl: './eventos-detalhe.component.html',
   styleUrls: ['./eventos-detalhe.component.scss'],
+  providers: [DatePipe],
 })
 export class EventosDetalheComponent implements OnInit {
   form: FormGroup;
+  modalRef: BsModalRef;
+  eventoId: number;
   evento = {} as Evento;
   estadoSalvar = 'post';
+  loteAtual = { id: 0, nome: '', indice: 0 };
 
   constructor(
     private fb: FormBuilder,
     private localeService: BsLocaleService,
-    private router: ActivatedRoute,
+    private activatedRoute: ActivatedRoute,
     private eventoService: EventoService,
     private spinner: NgxSpinnerService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router: Router,
+    private modalService: BsModalService,
+    private loteService: LoteService,
+    private datePipe: DatePipe
   ) {
     this.localeService.use('pt-br');
   }
@@ -37,6 +51,10 @@ export class EventosDetalheComponent implements OnInit {
   ngOnInit(): void {
     this.carregarEvento();
     this.validation();
+  }
+
+  get lotes(): FormArray {
+    return this.form.get('lotes') as FormArray;
   }
 
   get f(): any {
@@ -50,6 +68,10 @@ export class EventosDetalheComponent implements OnInit {
       containerClass: 'theme-default',
       showWeekNumbers: false,
     };
+  }
+
+  get modoEditar(): boolean {
+    return this.estadoSalvar === 'put';
   }
 
   validation() {
@@ -68,56 +90,153 @@ export class EventosDetalheComponent implements OnInit {
       telefone: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       imagemURL: ['', Validators.required],
+      lotes: this.fb.array([]),
     });
+  }
+
+  public cssValidator(campoForm: FormControl | AbstractControl): any {
+    return { 'is-invalid': campoForm.errors && campoForm.touched };
   }
 
   resetForm() {
     this.form.reset();
   }
 
-  carregarEvento(): void {
-    const eventoIdParam = this.router.snapshot.paramMap.get('id');
+  public carregarEvento(): void {
+    this.eventoId = +this.activatedRoute.snapshot.paramMap.get('id');
 
-    if (eventoIdParam !== null) {
+    if (this.eventoId !== null && this.eventoId !== 0) {
       this.spinner.show();
 
       this.estadoSalvar = 'put';
 
-      this.eventoService.getEventoById(+eventoIdParam).subscribe(
-        (evento: Evento) => {
-          this.evento = { ...evento };
-          this.form.patchValue(this.evento);
+      this.eventoService
+        .getEventoById(this.eventoId)
+        .subscribe(
+          (evento: Evento) => {
+            this.evento = { ...evento };
+            this.form.patchValue(this.evento);
+            this.carregarLotes();
+          },
+          (error: any) => {
+            this.toastr.error('Erro ao tentar carregar Evento.', 'Erro!');
+            console.error(error);
+          }
+        )
+        .add(() => this.spinner.hide());
+    }
+  }
+
+  public carregarLotes(): void {
+    this.loteService
+      .getLotesByEventoId(this.eventoId)
+      .subscribe(
+        (lotesRetorno: Lote[]) => {
+          lotesRetorno.forEach((lote) => {
+            this.lotes.push(this.criarLote(lote));
+          });
         },
         (error: any) => {
-          this.spinner.hide(),
-            this.toastr.error('Erro ao tentar carregar Evento', 'Erro !'),
-            console.error(error);
+          this.toastr.error('Erro ao tentar carregar lotes', 'Erro');
+          console.error(error);
+        }
+      )
+      .add(() => this.spinner.hide());
+  }
+
+  public salvarEventos(): void {
+    this.spinner.show();
+    if (this.form.valid) {
+      this.evento =
+        this.estadoSalvar === 'post'
+          ? { ...this.form.value }
+          : { id: this.evento.id, ...this.form.value };
+
+      this.eventoService[this.estadoSalvar](this.evento).subscribe(
+        (eventoRetorno: Evento) => {
+          this.toastr.success('Evento salvo com Sucesso!', 'Sucesso');
+          this.router.navigate([`eventos/detalhe/${eventoRetorno.id}`]);
+        },
+        (error: any) => {
+          console.error(error);
+          this.spinner.hide();
+          this.toastr.error('Error ao salvar evento', 'Erro');
         },
         () => this.spinner.hide()
       );
     }
   }
+  public salvarLotes(): void {
+    if (this.form.controls.lotes.valid) {
+      this.spinner.show();
+      this.loteService
+        .saveLote(this.eventoId, this.form.value.lotes)
+        .subscribe(
+          () => {
+            this.toastr.success('Lotes salvos com Sucesso!', 'Sucesso!');
+          },
+          (error: any) => {
+            this.toastr.error('Erro ao tentar salvar lotes.', 'Erro');
+            console.error(error);
+          }
+        )
+        .add(() => this.spinner.hide());
+    }
+  }
+  public removerLote(template: TemplateRef<any>, indice: number): void {
+    this.loteAtual.id = this.lotes.get(indice + '.id').value;
+    this.loteAtual.nome = this.lotes.get(indice + '.nome').value;
+    this.loteAtual.indice = indice;
 
-  salvarAlteracao(): void {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  confirmDeleteLote(): void {
+    this.modalRef.hide();
     this.spinner.show();
-    if (this.form.valid) {
-     this.evento = (this.estadoSalvar === 'post')
-        ? { ...this.form.value }
-        : { id: this.evento.id, ...this.form.value };
 
-      this.eventoService[this.estadoSalvar](this.evento).subscribe(
+    this.loteService
+      .deleteLote(this.eventoId, this.loteAtual.id)
+      .subscribe(
         () => {
-          this.toastr.success('Evento salvo com sucesso', 'Sucesso');
+          this.toastr.success('Lote deletado com sucesso', 'Sucesso');
+          this.lotes.removeAt(this.loteAtual.indice);
         },
         (error: any) => {
+          this.toastr.error(
+            `Erro ao tentar deletar o Lote ${this.loteAtual.id}`,
+            'Erro'
+          );
           console.error(error);
-          this.spinner.hide();
-          this.toastr.error('Erro ao salvar evento', 'Erro');
-        },
-        () => {
-          this.spinner.hide();
         }
-      );
-    }
+      )
+      .add(() => this.spinner.hide());
+  }
+
+  declineDeleteLote(): void {
+    this.modalRef.hide();
+  }
+
+  adicionarLote(): void {
+    this.lotes.push(this.criarLote({ id: 0 } as Lote));
+  }
+
+  criarLote(lote: Lote): FormGroup {
+    return this.fb.group({
+      id: [lote.id],
+      nome: [lote.nome, Validators.required],
+      quantidade: [lote.quantidade, Validators.required],
+      preco: [lote.preco, Validators.required],
+      dataInicio: [lote.dataInicio],
+      dataFim: [lote.dataFim],
+    });
+  }
+
+  public mudarValorData(value: Date, indice: number, campo: string): void {
+    this.lotes.value[indice][campo] = value;
+  }
+
+  public retornaTituloLote(nome: string): string {
+    return nome === null || nome === '' ? 'Nome do lote' : nome;
   }
 }

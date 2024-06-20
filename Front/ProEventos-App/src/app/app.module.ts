@@ -1,3 +1,4 @@
+import { LoteService } from './services/lote.service';
 import { TituloComponent } from './shared/titulo/titulo.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { PerfilComponent } from './components/user/perfil/perfil.component';
@@ -77,7 +78,7 @@ defineLocale('pt-br', ptBrLocale);
     NgxCurrencyModule,
     BsDatepickerModule.forRoot(),
   ],
-  providers: [EventoService],
+  providers: [EventoService,LoteService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
