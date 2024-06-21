@@ -1,56 +1,42 @@
-import { LoteService } from './../../../services/lote.service';
-import { Evento } from './../../../models/Evento';
-import { EventoService } from './../../../services/evento.service';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Component, OnInit, TemplateRef } from '@angular/core';
-import {
-  AbstractControl,
+import { AbstractControl,
   FormArray,
   FormBuilder,
   FormControl,
   FormGroup,
-  Validators,
-} from '@angular/forms';
+  Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+
 import { BsLocaleService } from 'ngx-bootstrap/datepicker';
+import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
 
-import { ToastrService } from 'ngx-toastr';
-import { Lote } from 'src/app/models/Lote';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { LoteService } from './../../../services/lote.service';
+import { EventoService } from '@app/services/evento.service';
+import { Evento } from '@app/models/Evento';
+import { Lote } from '@app/models/Lote';
 import { DatePipe } from '@angular/common';
+import { environment } from '@environments/environment';
 
 @Component({
-  selector: 'app-eventos-detalhe',
-  templateUrl: './eventos-detalhe.component.html',
-  styleUrls: ['./eventos-detalhe.component.scss'],
+  selector: 'app-evento-detalhe',
+  templateUrl: './evento-detalhe.component.html',
+  styleUrls: ['./evento-detalhe.component.scss'],
   providers: [DatePipe],
 })
-export class EventosDetalheComponent implements OnInit {
-  form: FormGroup;
+export class EventoDetalheComponent implements OnInit {
   modalRef: BsModalRef;
   eventoId: number;
   evento = {} as Evento;
+  form: FormGroup;
   estadoSalvar = 'post';
   loteAtual = { id: 0, nome: '', indice: 0 };
+  imagemURL = 'assets/img/upload.png';
+  file: File;
 
-  constructor(
-    private fb: FormBuilder,
-    private localeService: BsLocaleService,
-    private activatedRoute: ActivatedRoute,
-    private eventoService: EventoService,
-    private spinner: NgxSpinnerService,
-    private toastr: ToastrService,
-    private router: Router,
-    private modalService: BsModalService,
-    private loteService: LoteService,
-    private datePipe: DatePipe
-  ) {
-    this.localeService.use('pt-br');
-  }
-
-  ngOnInit(): void {
-    this.carregarEvento();
-    this.validation();
+  get modoEditar(): boolean {
+    return this.estadoSalvar === 'put';
   }
 
   get lotes(): FormArray {
@@ -61,49 +47,32 @@ export class EventosDetalheComponent implements OnInit {
     return this.form.controls;
   }
 
-  get bsConfig() {
+  get bsConfig(): any {
     return {
-      adaptativePosition: true,
+      adaptivePosition: true,
       dateInputFormat: 'DD/MM/YYYY hh:mm a',
       containerClass: 'theme-default',
       showWeekNumbers: false,
     };
   }
 
-  get modoEditar(): boolean {
-    return this.estadoSalvar === 'put';
-  }
-
-  validation() {
-    this.form = this.fb.group({
-      tema: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(4),
-          Validators.maxLength(50),
-        ],
-      ],
-      local: ['', Validators.required],
-      dataEvento: ['', Validators.required],
-      qtdPessoas: ['', [Validators.required, Validators.max(1200)]],
-      telefone: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      imagemURL: ['', Validators.required],
-      lotes: this.fb.array([]),
-    });
-  }
-
-  public cssValidator(campoForm: FormControl | AbstractControl): any {
-    return { 'is-invalid': campoForm.errors && campoForm.touched };
-  }
-
-  resetForm() {
-    this.form.reset();
+  constructor(
+    private fb: FormBuilder,
+    private localeService: BsLocaleService,
+    private activatedRouter: ActivatedRoute,
+    private eventoService: EventoService,
+    private spinner: NgxSpinnerService,
+    private toastr: ToastrService,
+    private modalService: BsModalService,
+    private router: Router,
+    private loteService: LoteService,
+    private datePipe: DatePipe
+  ) {
+    this.localeService.use('pt-br');
   }
 
   public carregarEvento(): void {
-    this.eventoId = +this.activatedRoute.snapshot.paramMap.get('id');
+    this.eventoId = +this.activatedRouter.snapshot.paramMap.get('id');
 
     if (this.eventoId !== null && this.eventoId !== 0) {
       this.spinner.show();
@@ -116,6 +85,9 @@ export class EventosDetalheComponent implements OnInit {
           (evento: Evento) => {
             this.evento = { ...evento };
             this.form.patchValue(this.evento);
+            if (this.evento.imagemURL !== '') {
+              this.imagemURL = environment.apiURL + 'resources/images/' + this.evento.imagemURL;
+            }
             this.carregarLotes();
           },
           (error: any) => {
@@ -144,7 +116,63 @@ export class EventosDetalheComponent implements OnInit {
       .add(() => this.spinner.hide());
   }
 
-  public salvarEventos(): void {
+  ngOnInit(): void {
+    this.carregarEvento();
+    this.validation();
+  }
+
+  public validation(): void {
+    this.form = this.fb.group({
+      tema: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(4),
+          Validators.maxLength(50),
+        ],
+      ],
+      local: ['', Validators.required],
+      dataEvento: ['', Validators.required],
+      qtdPessoas: ['', [Validators.required, Validators.max(120000)]],
+      telefone: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      imagemURL: [''],
+      lotes: this.fb.array([]),
+    });
+  }
+
+  adicionarLote(): void {
+    this.lotes.push(this.criarLote({ id: 0 } as Lote));
+  }
+
+  criarLote(lote: Lote): FormGroup {
+    return this.fb.group({
+      id: [lote.id],
+      nome: [lote.nome, Validators.required],
+      quantidade: [lote.quantidade, Validators.required],
+      preco: [lote.preco, Validators.required],
+      dataInicio: [lote.dataInicio],
+      dataFim: [lote.dataFim],
+    });
+  }
+
+  public mudarValorData(value: Date, indice: number, campo: string): void {
+    this.lotes.value[indice][campo] = value;
+  }
+
+  public retornaTituloLote(nome: string): string {
+    return nome === null || nome === '' ? 'Nome do lote' : nome;
+  }
+
+  public resetForm(): void {
+    this.form.reset();
+  }
+
+  public cssValidator(campoForm: FormControl | AbstractControl): any {
+    return { 'is-invalid': campoForm.errors && campoForm.touched };
+  }
+
+  public salvarEvento(): void {
     this.spinner.show();
     if (this.form.valid) {
       this.evento =
@@ -166,6 +194,7 @@ export class EventosDetalheComponent implements OnInit {
       );
     }
   }
+
   public salvarLotes(): void {
     if (this.form.controls.lotes.valid) {
       this.spinner.show();
@@ -183,6 +212,7 @@ export class EventosDetalheComponent implements OnInit {
         .add(() => this.spinner.hide());
     }
   }
+
   public removerLote(template: TemplateRef<any>, indice: number): void {
     this.loteAtual.id = this.lotes.get(indice + '.id').value;
     this.loteAtual.nome = this.lotes.get(indice + '.nome').value;
@@ -217,26 +247,29 @@ export class EventosDetalheComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  adicionarLote(): void {
-    this.lotes.push(this.criarLote({ id: 0 } as Lote));
+  onFileChange(ev: any): void {
+    const reader = new FileReader();
+
+    reader.onload = (event: any) => this.imagemURL = event.target.result;
+
+    this.file = ev.target.files;
+    reader.readAsDataURL(this.file[0]);
+
+    this.uploadImagem();
   }
 
-  criarLote(lote: Lote): FormGroup {
-    return this.fb.group({
-      id: [lote.id],
-      nome: [lote.nome, Validators.required],
-      quantidade: [lote.quantidade, Validators.required],
-      preco: [lote.preco, Validators.required],
-      dataInicio: [lote.dataInicio],
-      dataFim: [lote.dataFim],
-    });
+  uploadImagem(): void {
+    this.spinner.show();
+    this.eventoService.postUpload(this.eventoId, this.file).subscribe(
+      () => {
+        this.carregarEvento();
+        this.toastr.success('Imagem atualizada com Sucesso', 'Sucesso!');
+      },
+      (error: any) => {
+        this.toastr.error('Erro ao fazer upload de imagem', 'Erro!');
+        console.log(error);
+      }
+    ).add(() => this.spinner.hide());
   }
 
-  public mudarValorData(value: Date, indice: number, campo: string): void {
-    this.lotes.value[indice][campo] = value;
-  }
-
-  public retornaTituloLote(nome: string): string {
-    return nome === null || nome === '' ? 'Nome do lote' : nome;
-  }
 }

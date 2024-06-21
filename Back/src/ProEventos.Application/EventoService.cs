@@ -10,7 +10,7 @@ namespace ProEventos.Application
 {
     public class EventoService : IEventoService
     {
-       private readonly IGeralPersist _geralPersist;
+        private readonly IGeralPersist _geralPersist;
         private readonly IEventoPersist _eventoPersist;
         private readonly IMapper _mapper;
         public EventoService(IGeralPersist geralPersist,
@@ -27,7 +27,7 @@ namespace ProEventos.Application
         {
             var evento = _mapper.Map<Evento>(model);
 
-           _geralPersist.Add<Evento>(evento);
+            _geralPersist.Add<Evento>(evento);
 
             if (await _geralPersist.SaveChangesAsync())
             {

@@ -1,5 +1,7 @@
+import { ValidatorField } from './../../../helpers/ValidatorField';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
+import { AbstractControlOptions, FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-perfil',
@@ -7,43 +9,45 @@ import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/fo
   styleUrls: ['./perfil.component.scss']
 })
 export class PerfilComponent implements OnInit {
-  form: FormGroup;
 
-  constructor(private fb: FormBuilder) { }
+  form!: FormGroup;
 
-  ngOnInit() {
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
     this.validation();
   }
 
-  get f(): any {
-    return this.form.controls;
-  }
+  private validation(): void {
+    const formOptions: AbstractControlOptions = {
+      validators: ValidatorField.MustMatch('senha', 'confirmeSenha')
+    };
 
-  validation() {
     this.form = this.fb.group({
-      titulo: [''],
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
+      titulo: ['', Validators.required],
+      primeiroNome: ['', Validators.required],
+      ultimoNome: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      telefone: ['', Validators.required],
-      funcao: ['', Validators.required],
+      telefone: ['', [Validators.required]],
       descricao: ['', Validators.required],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', Validators.required]
-    }, { validator: this.passwordMatchValidator });
+      funcao: ['', Validators.required],
+      senha: ['', [Validators.minLength(6), Validators.nullValidator]],
+      confirmeSenha: ['', Validators.nullValidator]
+    }, formOptions);
   }
 
-  passwordMatchValidator(control: AbstractControl) {
-    const password = control.get('password');
-    const confirmPassword = control.get('confirmPassword');
+  // Conveniente para pegar um FormField apenas com a letra F
+  get f(): any { return this.form.controls; }
 
-    if (password && confirmPassword && password.value !== confirmPassword.value) {
-      confirmPassword.setErrors({ mismatch: true });
-    } else {
-      confirmPassword.setErrors(null);
+  onSubmit(): void {
+
+    // Vai parar aqui se o form estiver inválido
+    if (this.form.invalid) {
+      return;
     }
   }
-  resetForm(event: any) {
+
+  public resetForm(event: any): void {
     event.preventDefault();
     this.form.reset();
   }
