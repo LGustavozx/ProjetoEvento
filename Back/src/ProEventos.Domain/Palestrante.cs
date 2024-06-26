@@ -9,8 +9,6 @@ namespace ProEventos.Domain
         public string MiniCurriculo { get; set; }
         public int UserId { get; set; }
         public User User { get; set; }
-
-
         public IEnumerable<RedeSocial> RedesSociais { get; set; }
         public IEnumerable<PalestranteEvento> PalestrantesEventos { get; set; }
     }
