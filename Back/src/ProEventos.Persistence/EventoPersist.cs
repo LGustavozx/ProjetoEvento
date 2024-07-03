@@ -1,11 +1,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using ProEventos.Domain;
 using ProEventos.Persistence.Contextos;
 using ProEventos.Persistence.Contratos;
-using ProEventos.Persistence.models;
+using ProEventos.Persistence.Models;
 
 namespace ProEventos.Persistence
 {
@@ -32,13 +31,13 @@ namespace ProEventos.Persistence
             }
 
             query = query.AsNoTracking()
-                            .Where (e => e.Tema.ToLower().Contains(pageParams.Term.ToLower()) &&
-                            e.UserId == userId)
-                            .OrderBy(e => e.Id);
+                         .Where(e => (e.Tema.ToLower().Contains(pageParams.Term.ToLower()) ||
+                                      e.Local.ToLower().Contains(pageParams.Term.ToLower())) &&
+                                     e.UserId == userId)
+                         .OrderBy(e => e.Id);
 
-            return await PageList<Evento>.CreateAsync(query, pageParams.PageNumber, pageParams.PageSize);
+            return await PageList<Evento>.CreateAsync(query, pageParams.PageNumber, pageParams.pageSize);
         }
-
 
         public async Task<Evento> GetEventoByIdAsync(int userId, int eventoId, bool includePalestrantes = false)
         {

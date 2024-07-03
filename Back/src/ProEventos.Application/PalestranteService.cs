@@ -5,12 +5,11 @@ using ProEventos.Application.Contratos;
 using ProEventos.Application.Dtos;
 using ProEventos.Domain;
 using ProEventos.Persistence.Contratos;
-using ProEventos.Persistence.models;
-
+using ProEventos.Persistence.Models;
 
 namespace ProEventos.Application
 {
-    public class PalestranteService : IPalestranteService 
+    public class PalestranteService : IPalestranteService
     {
         private readonly IPalestrantePersist _palestrantePersist;
         private readonly IMapper _mapper;

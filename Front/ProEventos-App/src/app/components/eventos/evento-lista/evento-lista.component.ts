@@ -24,6 +24,7 @@ export class EventoListaComponent implements OnInit {
   public larguraImagem = 150;
   public margemImagem = 2;
   public exibirImagem = true;
+
   termoBuscaChanged: Subject<string> = new Subject<string>();
 
   public filtrarEventos(evt: any): void {

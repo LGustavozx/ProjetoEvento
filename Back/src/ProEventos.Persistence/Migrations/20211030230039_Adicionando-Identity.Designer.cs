@@ -9,8 +9,8 @@ using ProEventos.Persistence.Contextos;
 namespace ProEventos.Persistence.Migrations
 {
     [DbContext(typeof(ProEventosContext))]
-    [Migration("20240626161759_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20211030230039_Adicionando-Identity")]
+    partial class AdicionandoIdentity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

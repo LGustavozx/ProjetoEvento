@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ProEventos.Application.Contratos;
@@ -9,8 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using System.Linq;
 using ProEventos.API.Extensions;
 using Microsoft.AspNetCore.Authorization;
-using ProEventos.Persistence.models;
-
+using ProEventos.Persistence.Models;
 
 namespace ProEventos.API.Controllers
 {

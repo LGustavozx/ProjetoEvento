@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using ProEventos.Domain;
-using ProEventos.Persistence.models;
-
+using ProEventos.Persistence.Models;
 
 namespace ProEventos.Persistence.Contratos
 {

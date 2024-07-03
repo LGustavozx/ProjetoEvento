@@ -5,7 +5,7 @@ using ProEventos.Application.Contratos;
 using ProEventos.Application.Dtos;
 using ProEventos.Domain;
 using ProEventos.Persistence.Contratos;
-using ProEventos.Persistence.models;
+using ProEventos.Persistence.Models;
 
 namespace ProEventos.Application
 {
@@ -89,7 +89,7 @@ namespace ProEventos.Application
         }
     }
 
-    public async Task<PageList<EventoDto>> GetAllEventosAsync(int userId,  PageParams pageParams, bool includePalestrantes = false)
+    public async Task<PageList<EventoDto>> GetAllEventosAsync(int userId, PageParams pageParams, bool includePalestrantes = false)
     {
         try
         {
@@ -97,11 +97,11 @@ namespace ProEventos.Application
             if (eventos == null) return null;
 
             var resultado = _mapper.Map<PageList<EventoDto>>(eventos);
+
             resultado.CurrentPage = eventos.CurrentPage;
+            resultado.TotalPages = eventos.TotalPages;
             resultado.PageSize = eventos.PageSize;
             resultado.TotalCount = eventos.TotalCount;
-            resultado.TotalPages = eventos.TotalPages;
-            
 
             return resultado;
         }
